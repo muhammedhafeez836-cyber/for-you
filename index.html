@@ -1,568 +1,144 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Message Card</title>
-  <style>
-    :root{
-      --bg1:#070a16;
-      --bg2:#111a33;
-      --card:#0f172a;
-      --text:#e5e7eb;
-      --muted:#94a3b8;
-      --accent:#60a5fa;
-      --accent2:#a78bfa;
-      --good:#34d399;
-      --warn:#fbbf24;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(900px 600px at 20% 20%, rgba(96,165,250,.20), transparent 60%),
-        radial-gradient(800px 500px at 80% 30%, rgba(167,139,250,.18), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2));
-      overflow:hidden;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Card</title>
 
-    /* sparkles */
-    .sparkle{
-      position:absolute;
-      border-radius:999px;
-      background: rgba(255,255,255,.75);
-      opacity:.28;
-      animation: floatUp linear infinite;
-      filter: blur(.2px);
-      pointer-events:none;
-    }
-    @keyframes floatUp{
-      from{ transform: translateY(48vh) translateX(0) scale(.9); opacity:0; }
-      15%{ opacity:.28; }
-      to{ transform: translateY(-70vh) translateX(60px) scale(1.1); opacity:0; }
-    }
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family: system-ui, sans-serif;
+  background: linear-gradient(135deg,#0b1020,#121a33);
+  color:#fff;
+}
 
-    .wrap{
-      width:min(760px, 92vw);
-      padding:24px;
-      position:relative;
-      z-index:2;
-    }
+.card{
+  width:90%;
+  max-width:420px;
+  background:rgba(15,23,42,.85);
+  border-radius:20px;
+  padding:22px;
+  text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
 
-    .panel{
-      background: rgba(15,23,42,.80);
-      border: 1px solid rgba(148,163,184,.18);
-      border-radius: 26px;
-      padding: 22px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.45);
-      backdrop-filter: blur(10px);
-      overflow:hidden;
-      position:relative;
-    }
-    .panel::before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      border-radius:28px;
-      background: conic-gradient(from 180deg, var(--accent), var(--accent2), var(--accent), var(--good), var(--accent2));
-      filter: blur(10px);
-      opacity:.30;
-      animation: spin 7s linear infinite;
-      z-index:-2;
-    }
-    .panel::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:26px;
-      background: rgba(15,23,42,.80);
-      z-index:-1;
-    }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
+.envelope{
+  height:200px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  margin-bottom:15px;
+}
 
-    .top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      color: var(--muted);
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.18);
-      background: rgba(2,6,23,.35);
-      white-space:nowrap;
-    }
-    .dot{
-      width:8px;height:8px;border-radius:999px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      box-shadow: 0 0 18px rgba(96,165,250,.45);
-    }
+.opened{
+  background:rgba(255,255,255,.05);
+}
 
-    .stepTitle{
-      margin:14px 0 6px;
-      font-size: clamp(20px, 3.2vw, 30px);
-      letter-spacing:-0.02em;
-      line-height:1.15;
-    }
-    .stepHint{
-      margin:0;
-      color: rgba(229,231,235,.88);
-      font-size: clamp(14px, 2.2vw, 16px);
-      line-height:1.6;
-    }
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#60a5fa;
+  color:#000;
+  font-weight:600;
+  cursor:pointer;
+}
 
-    .divider{
-      height:1px;
-      background: rgba(148,163,184,.16);
-      margin:18px 0;
-    }
+.hidden{display:none;}
 
-    .center{
-      display:grid;
-      place-items:center;
-      gap:14px;
-      padding:10px 0 2px;
-    }
-
-    /* Envelope */
-    .envelopeArea{
-      width:min(420px, 86vw);
-      height: clamp(200px, 40vw, 240px); /* mobile-friendly */
-      position:relative;
-      cursor:pointer;
-      user-select:none;
-      transform: translateY(4px);
-      transition: transform .15s ease;
-    }
-    .envelopeArea:hover{ transform: translateY(2px); }
-
-    .env{
-      width:100%;
-      height:100%;
-      position:relative;
-      border-radius:18px;
-      background: linear-gradient(135deg, rgba(96,165,250,.18), rgba(167,139,250,.14));
-      border:1px solid rgba(148,163,184,.22);
-      overflow:hidden;
-    }
-    .envBase{
-      position:absolute; inset:0;
-      background: rgba(2,6,23,.35);
-    }
-    .envShadow{
-      position:absolute; inset:-20px;
-      background: radial-gradient(closest-side, rgba(0,0,0,.25), transparent 70%);
-      opacity:.65;
-    }
-
-    /* flap */
-    .flap{
-      position:absolute; left:0; right:0; top:0;
-      height:60%;
-      background: linear-gradient(135deg, rgba(96,165,250,.35), rgba(167,139,250,.25));
-      clip-path: polygon(0 0, 100% 0, 50% 92%);
-      transform-origin: top center;
-      transform: rotateX(0deg);
-      transition: transform .75s cubic-bezier(.2,.9,.2,1);
-      border-bottom:1px solid rgba(148,163,184,.18);
-    }
-    .open .flap{ transform: rotateX(150deg); }
-
-    /* letter preview (FIXED for mobile readability) */
-    .letter{
-      position:absolute;
-      left:14px; right:14px; bottom:14px;
-      height:72%;
-      background: rgba(229,231,235,.08);
-      border:1px solid rgba(148,163,184,.20);
-      border-radius:14px;
-      transform: translateY(44px);
-      transition: transform .75s cubic-bezier(.2,.9,.2,1);
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      text-align:center;
-      padding: 16px 14px;
-      line-height: 1.25;
-      letter-spacing: .01em;
-
-      font-size: clamp(12px, 2.8vw, 14px);
-      color: rgba(229,231,235,.92);
-
-      overflow:hidden;           /* prevent spilling */
-      word-break: break-word;    /* keep words inside */
-    }
-    .open .letter{ transform: translateY(-8px); }
-
-    .tapText{
-      display:flex; gap:10px; align-items:center; justify-content:center;
-      color: var(--muted);
-      font-size: 13px;
-      text-align:center;
-    }
-    .pulseDot{
-      width:10px; height:10px; border-radius:999px;
-      background: var(--warn);
-      box-shadow: 0 0 18px rgba(251,191,36,.35);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    @keyframes pulse{
-      0%,100%{ transform: scale(1); opacity:.75;}
-      50%{ transform: scale(1.25); opacity:1;}
-    }
-
-    /* Hold-to-unlock */
-    .holdWrap{
-      width:min(420px, 86vw);
-      display:none;
-      gap:10px;
-    }
-    .holdWrap.show{ display:grid; }
-    .holdBtn{
-      width:100%;
-      border:1px solid rgba(148,163,184,.22);
-      background: rgba(2,6,23,.35);
-      color: var(--text);
-      padding:14px 14px;
-      border-radius: 16px;
-      cursor:pointer;
-      user-select:none;
-      position:relative;
-      overflow:hidden;
-      font-size: 14px;
-      letter-spacing:.01em;
-      touch-action: none;
-    }
-    .holdBtn:disabled{ cursor:default; opacity:.9; }
-    .bar{
-      position:absolute; left:0; top:0; bottom:0;
-      width:0%;
-      background: linear-gradient(90deg, rgba(52,211,153,.22), rgba(96,165,250,.22), rgba(167,139,250,.18));
-      transition: width .06s linear;
-    }
-    .holdText{ position:relative; z-index:2; display:flex; gap:10px; justify-content:center; align-items:center; }
-    .lock{
-      width:10px; height:10px; border-radius:2px;
-      border:2px solid rgba(229,231,235,.7);
-      position:relative;
-      flex: 0 0 auto;
-    }
-    .lock::before{
-      content:"";
-      position:absolute;
-      width:10px; height:8px;
-      left:50%; transform: translateX(-50%);
-      top:-8px;
-      border:2px solid rgba(229,231,235,.7);
-      border-bottom:none;
-      border-radius:10px 10px 0 0;
-    }
-
-    /* Final card */
-    .finalCard{
-      display:none;
-      margin-top:2px;
-      padding:18px;
-      border-radius: 20px;
-      background: rgba(2,6,23,.30);
-      border: 1px solid rgba(148,163,184,.18);
-      width:min(520px, 86vw);
-    }
-    .finalCard.show{ display:block; }
-
-    /* GIF */
-    .gifBox{
-      width:100%;
-      display:grid;
-      place-items:center;
-      margin: 2px 0 12px;
-    }
-    .gif{
-      width: min(320px, 74vw);
-      max-width: 100%;
-      height: auto;
-      border-radius: 16px;
-      border: 1px solid rgba(148,163,184,.18);
-      box-shadow: 0 14px 38px rgba(0,0,0,.35);
-    }
-
-    .msg{
-      margin:0;
-      color: rgba(229,231,235,.92);
-      font-size: clamp(14px, 2.2vw, 17px);
-      line-height:1.7;
-    }
-    .reveal{
-      display:inline;
-      border-right: 2px solid rgba(229,231,235,.65);
-      animation: caret 800ms steps(1) infinite;
-      white-space: pre-wrap;
-    }
-    @keyframes caret{ 50%{ border-right-color: transparent; } }
-
-    .from{
-      margin-top:14px;
-      color: var(--muted);
-      font-size: 13px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .btnRow{ display:flex; gap:10px; }
-    .btn{
-      cursor:pointer;
-      border:1px solid rgba(148,163,184,.22);
-      background: rgba(2,6,23,.35);
-      color: var(--text);
-      padding:10px 12px;
-      border-radius: 12px;
-      transition: transform .15s ease, border-color .15s ease;
-      user-select:none;
-      font-size:13px;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(96,165,250,.45); }
-    .btn:active{ transform: translateY(0px); }
-
-    .shake{ animation: shake .35s ease; }
-    @keyframes shake{
-      0%,100%{ transform: translateX(0); }
-      20%{ transform: translateX(-6px); }
-      40%{ transform: translateX(6px); }
-      60%{ transform: translateX(-4px); }
-      80%{ transform: translateX(4px); }
-    }
-
-    /* Extra small phones */
-    @media (max-width: 360px){
-      .panel{ padding:18px; }
-      .letter{ left:12px; right:12px; bottom:12px; padding:14px 12px; }
-      .badge{ font-size:11px; padding:7px 10px; }
-    }
-  </style>
+.msg{
+  line-height:1.6;
+  font-size:16px;
+}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="panel" id="panel">
-      <div class="top">
-        <div class="badge"><span class="dot"></span><span id="badgeText">Private note</span></div>
-        <div class="badge">Step <span id="stepNo">1</span> of 2</div>
-      </div>
 
-      <h1 class="stepTitle" id="stepTitle">Open the envelope</h1>
-      <p class="stepHint" id="stepHint">Tap the envelope to begin.</p>
-
-      <div class="divider"></div>
-
-      <div class="center">
-        <div class="envelopeArea" id="envelopeArea" aria-label="Envelope">
-          <div class="env" id="env">
-            <div class="envShadow"></div>
-            <div class="envBase"></div>
-            <div class="flap"></div>
-            <div class="letter" id="letterPreview">
-              Tap to open.<br/>
-              Then hold to unlock<br/>
-              and reveal the message.
-            </div>
-          </div>
-        </div>
-
-        <div class="tapText" id="tapText">
-          <span class="pulseDot"></span>
-          <span id="tapMsg">Tap the envelope</span>
-        </div>
-
-        <div class="holdWrap" id="holdWrap">
-          <button class="holdBtn" id="holdBtn" type="button" aria-label="Hold to unlock">
-            <div class="bar" id="bar"></div>
-            <div class="holdText"><span class="lock"></span><span id="holdLabel">Hold for 2 seconds to unlock</span></div>
-          </button>
-          <div style="color:var(--muted); font-size:12px; text-align:center;">
-            Tip: press and hold (mouse or finger).
-          </div>
-        </div>
-
-        <div class="finalCard" id="finalCard">
-          <div class="gifBox">
-            <!-- Make sure you uploaded the gif as love.gif in the repo root -->
-            <img class="gif" src="love.gif" alt="I LOVE YOU GIF" />
-          </div>
-
-          <p class="msg"><span class="reveal" id="typing"></span></p>
-
-          <div class="from">
-            <div>From Mr. Hafeez.</div>
-            <div class="btnRow">
-              <button class="btn" id="replayBtn" type="button">Replay</button>
-              <button class="btn" id="copyBtn" type="button">Copy link</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
+<div class="card">
+  <div id="env" class="envelope">
+    <div id="envText">Tap to open envelope 💌</div>
   </div>
 
-  <script>
-    // ===== Sparkles background =====
-    const sparkleCount = 20;
-    for (let s = 0; s < sparkleCount; s++) {
-      const el = document.createElement("div");
-      el.className = "sparkle";
-      const left = Math.random() * 100;
-      const delay = Math.random() * 6;
-      const dur = 7 + Math.random() * 10;
-      const size = 3 + Math.random() * 7;
-      el.style.left = left + "vw";
-      el.style.animationDelay = delay + "s";
-      el.style.animationDuration = dur + "s";
-      el.style.width = size + "px";
-      el.style.height = size + "px";
-      el.style.top = (65 + Math.random() * 55) + "vh";
-      document.body.appendChild(el);
-    }
+  <button id="unlock" class="hidden">Hold to unlock 🔓</button>
 
-    // ===== Steps + interactions =====
-    const env = document.getElementById("env");
-    const envelopeArea = document.getElementById("envelopeArea");
-    const holdWrap = document.getElementById("holdWrap");
-    const holdBtn = document.getElementById("holdBtn");
-    const bar = document.getElementById("bar");
-    const finalCard = document.getElementById("finalCard");
+  <div id="final" class="hidden">
+    <p class="msg" id="type"></p>
+  </div>
+</div>
 
-    const stepNo = document.getElementById("stepNo");
-    const stepTitle = document.getElementById("stepTitle");
-    const stepHint = document.getElementById("stepHint");
-    const tapMsg = document.getElementById("tapMsg");
+<script>
+const env=document.getElementById("env");
+const unlock=document.getElementById("unlock");
+const final=document.getElementById("final");
+const type=document.getElementById("type");
 
-    let opened = false;
-    let unlocked = false;
+let opened=false;
 
-    envelopeArea.addEventListener("click", () => {
-      if (opened) return;
-      opened = true;
-      env.classList.add("open");
+env.onclick=()=>{
+ if(opened) return;
+ opened=true;
+ env.classList.add("opened");
+ document.getElementById("envText").innerText="Envelope opened ✔";
+ unlock.classList.remove("hidden");
+};
 
-      stepNo.textContent = "2";
-      stepTitle.textContent = "Unlock the note";
-      stepHint.textContent = "Hold the button until it fills completely.";
-      tapMsg.textContent = "Now unlock it below";
-      holdWrap.classList.add("show");
-    });
+let timer,hold=false;
 
-    // Hold-to-unlock logic (mouse + touch)
-    let holding = false;
-    let startTs = 0;
-    let raf = null;
-    const HOLD_MS = 2000;
+unlock.onmousedown=()=>{
+ hold=true;
+ timer=setTimeout(reveal,1500);
+};
 
-    function updateProgress(ts){
-      if (!holding) return;
-      const elapsed = ts - startTs;
-      const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
-      bar.style.width = pct + "%";
+unlock.onmouseup=reset;
+unlock.ontouchstart=()=>{
+ hold=true;
+ timer=setTimeout(reveal,1500);
+}
+unlock.ontouchend=reset;
 
-      if (elapsed >= HOLD_MS) {
-        holding = false;
-        unlocked = true;
-        holdBtn.disabled = true;
-        document.getElementById("holdLabel").textContent = "Unlocked";
-        bar.style.width = "100%";
-        revealMessage();
-        return;
-      }
-      raf = requestAnimationFrame(updateProgress);
-    }
+function reset(){
+ if(!hold) return;
+ hold=false;
+ clearTimeout(timer);
+}
 
-    function startHold(){
-      if (!opened || unlocked) {
-        if (!opened) {
-          envelopeArea.classList.remove("shake");
-          void envelopeArea.offsetWidth;
-          envelopeArea.classList.add("shake");
-        }
-        return;
-      }
-      holding = true;
-      startTs = performance.now();
-      bar.style.width = "0%";
-      raf = requestAnimationFrame(updateProgress);
-    }
+function reveal(){
+ unlock.style.display="none";
+ final.classList.remove("hidden");
+ typeText();
+}
 
-    function endHold(){
-      if (!holding || unlocked) return;
-      holding = false;
-      cancelAnimationFrame(raf);
-      bar.style.width = "0%";
-      holdBtn.classList.remove("shake");
-      void holdBtn.offsetWidth;
-      holdBtn.classList.add("shake");
-    }
+const message=
+`I Love You 💖
 
-    holdBtn.addEventListener("mousedown", startHold);
-    holdBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startHold(); }, {passive:false});
-    window.addEventListener("mouseup", endHold);
-    window.addEventListener("touchend", endHold);
+Let's watch a movie of your choice.
 
-    // ===== Typewriter reveal =====
-    const typingEl = document.getElementById("typing");
-    const msg =
-`Let’s watch a movie of your choice.
+From Mr. Hafeez.
 
----------
-Reply with the choice of your movie.`;
+Let me know quickly quickly quickly.`;
 
-    let i = 0, timer = null;
+let i=0;
 
-    function typeIt(){
-      clearInterval(timer);
-      typingEl.textContent = "";
-      i = 0;
-      timer = setInterval(() => {
-        typingEl.textContent += msg[i] || "";
-        i++;
-        if (i >= msg.length) clearInterval(timer);
-      }, 22);
-    }
+function typeText(){
+ type.innerHTML="";
+ i=0;
+ const t=setInterval(()=>{
+  type.innerHTML+=message[i]||"";
+  i++;
+  if(i>=message.length) clearInterval(t);
+ },25);
+}
+</script>
 
-    function revealMessage(){
-      finalCard.classList.add("show");
-      typeIt();
-      finalCard.scrollIntoView({behavior:"smooth", block:"nearest"});
-    }
-
-    document.getElementById("replayBtn").addEventListener("click", () => {
-      if (!unlocked) return;
-      typeIt();
-    });
-
-    document.getElementById("copyBtn").addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(location.href);
-        const btn = document.getElementById("copyBtn");
-        const old = btn.textContent;
-        btn.textContent = "Copied";
-        setTimeout(() => btn.textContent = old, 900);
-      } catch {
-        alert("Copy failed. Copy the URL from the address bar.");
-      }
-    });
-  </script>
 </body>
 </html>
