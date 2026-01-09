@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Message Card</title>
+  <style>
+    :root{
+      --bg1:#0b1020; --bg2:#121a33; --card:#0f172a;
+      --text:#e5e7eb; --muted:#94a3b8; --accent:#60a5fa; --accent2:#a78bfa;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 20%, rgba(96,165,250,.20), transparent 60%),
+        radial-gradient(800px 500px at 80% 30%, rgba(167,139,250,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+    .sparkle{
+      position:absolute; width:6px; height:6px; border-radius:999px;
+      background: rgba(255,255,255,.7); opacity:.35;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp{
+      from{ transform: translateY(40vh) translateX(0) scale(.9); opacity:0; }
+      15%{ opacity:.35; }
+      to{ transform: translateY(-60vh) translateX(60px) scale(1.1); opacity:0; }
+    }
+    .wrap{ width:min(720px, 92vw); padding:24px; position:relative; z-index:2; }
+    .card{
+      position:relative;
+      background: rgba(15,23,42,.78);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 24px;
+      padding: 26px 22px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      overflow:hidden;
+      transform: translateY(16px) scale(.98);
+      opacity:0;
+      animation: enter .9s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    @keyframes enter{ to{ transform: translateY(0) scale(1); opacity:1; } }
+    .card::before{
+      content:""; position:absolute; inset:-2px; border-radius:26px;
+      background: conic-gradient(from 180deg, var(--accent), var(--accent2), var(--accent), #34d399, var(--accent2));
+      filter: blur(10px); opacity:.35; animation: spin 6s linear infinite; z-index:-2;
+    }
+    .card::after{
+      content:""; position:absolute; inset:0; border-radius:24px;
+      background: rgba(15,23,42,.78); z-index:-1;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; color: var(--muted);
+      padding:8px 12px; border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.35);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 18px rgba(96,165,250,.45);
+    }
+    h1{ margin:14px 0 10px; font-size: clamp(22px, 3.5vw, 34px); letter-spacing:-0.02em; line-height:1.15; }
+    p{ margin:0; color: rgba(229,231,235,.9); font-size: clamp(14px, 2.2vw, 17px); line-height:1.6; }
+    .footer{
+      margin-top:18px; display:flex; flex-wrap:wrap; gap:10px;
+      align-items:center; justify-content:space-between;
+      color: var(--muted); font-size: 13px;
+    }
+    .btn{
+      cursor:pointer; border:1px solid rgba(148,163,184,.22);
+      background: rgba(2,6,23,.35);
+      color: var(--text);
+      padding:10px 12px; border-radius: 12px;
+      transition: transform .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(96,165,250,.45); }
+    .btn:active{ transform: translateY(0px); }
+
+    .reveal{
+      display:inline; border-right: 2px solid rgba(229,231,235,.65);
+      animation: caret 800ms steps(1) infinite;
+    }
+    @keyframes caret{ 50%{ border-right-color: transparent; } }
+    .heart{ display:inline-block; animation: pulse 1.4s ease-in-out infinite; transform-origin:center; }
+    @keyframes pulse{ 0%,100%{ transform: scale(1); opacity:.95; } 50%{ transform: scale(1.12); opacity:1; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="article" aria-label="Animated message card">
+      <div class="badge"><span class="dot"></span><span>A message for you</span></div>
+
+      <h1 id="title">I love you.</h1>
+      <p><span class="reveal" id="typing"></span></p>
+
+      <div class="footer">
+        <div>— From me <span class="heart">♥</span></div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="copyBtn" type="button">Copy link</button>
+          <button class="btn" id="replayBtn" type="button">Replay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const msg = "Let’s watch a movie of your choice.";
+    const typingEl = document.getElementById("typing");
+    let i = 0, timer = null;
+
+    function typeIt() {
+      clearInterval(timer);
+      typingEl.textContent = "";
+      i = 0;
+      timer = setInterval(() => {
+        typingEl.textContent += msg[i] || "";
+        i++;
+        if (i >= msg.length) clearInterval(timer);
+      }, 25);
+    }
+    typeIt();
+
+    document.getElementById("replayBtn").addEventListener("click", typeIt);
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        const btn = document.getElementById("copyBtn");
+        const old = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(() => btn.textContent = old, 900);
+      } catch {
+        alert("Copy failed. Copy the URL from the address bar.");
+      }
+    });
+
+    // Background sparkles
+    const sparkleCount = 18;
+    for (let s = 0; s < sparkleCount; s++) {
+      const el = document.createElement("div");
+      el.className = "sparkle";
+      const left = Math.random() * 100;
+      const delay = Math.random() * 6;
+      const dur = 6 + Math.random() * 10;
+      const size = 4 + Math.random() * 6;
+      el.style.left = left + "vw";
+      el.style.animationDelay = delay + "s";
+      el.style.animationDuration = dur + "s";
+      el.style.width = size + "px";
+      el.style.height = size + "px";
+      el.style.top = (60 + Math.random() * 50) + "vh";
+      document.body.appendChild(el);
+    }
+  </script>
+</body>
+</html>
