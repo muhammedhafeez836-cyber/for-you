@@ -56,8 +56,15 @@ button{
 .hidden{display:none;}
 
 .msg{
-  line-height:1.6;
+  line-height:1.7;
   font-size:16px;
+}
+
+.signature{
+  margin-top:14px;
+  font-size:13px;
+  color:#a78bfa;
+  font-style:italic;
 }
 </style>
 </head>
@@ -72,7 +79,7 @@ button{
   <button id="unlock" class="hidden">Hold to unlock 🔓</button>
 
   <div id="final" class="hidden">
-    <p class="msg" id="type"></p>
+    <div class="msg" id="type"></div>
   </div>
 </div>
 
@@ -118,24 +125,30 @@ function reveal(){
  typeText();
 }
 
-const message=
-`I Love You 💖
+const message=[
+"<b>I Love You 💖</b>",
+"",
+"Let's watch a movie of your choice.",
+"Let me know which one <b>QUICKLY QUICKLY</b>.",
+"",
+"<span class='signature'>From Mr. Hafeez.</span>"
+];
 
-Let's watch a movie of your choice.
-
-From Mr. Hafeez.
-
-Let me know quickly quickly quickly.`;
-
-let i=0;
+let i=0,j=0;
 
 function typeText(){
  type.innerHTML="";
- i=0;
+ i=0; j=0;
  const t=setInterval(()=>{
-  type.innerHTML+=message[i]||"";
-  i++;
-  if(i>=message.length) clearInterval(t);
+  if(j<message.length){
+    if(i<message[j].length){
+      type.innerHTML+=message[j][i];
+      i++;
+    }else{
+      type.innerHTML+="<br>";
+      j++; i=0;
+    }
+  }else clearInterval(t);
  },25);
 }
 </script>
