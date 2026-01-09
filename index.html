@@ -102,6 +102,7 @@
       border-radius:999px;
       border:1px solid rgba(148,163,184,.18);
       background: rgba(2,6,23,.35);
+      white-space:nowrap;
     }
     .dot{
       width:8px;height:8px;border-radius:999px;
@@ -138,7 +139,7 @@
     /* Envelope */
     .envelopeArea{
       width:min(420px, 86vw);
-      height:220px;
+      height: clamp(200px, 40vw, 240px); /* mobile-friendly */
       position:relative;
       cursor:pointer;
       user-select:none;
@@ -146,6 +147,7 @@
       transition: transform .15s ease;
     }
     .envelopeArea:hover{ transform: translateY(2px); }
+
     .env{
       width:100%;
       height:100%;
@@ -178,24 +180,31 @@
     }
     .open .flap{ transform: rotateX(150deg); }
 
-    /* letter */
+    /* letter preview (FIXED for mobile readability) */
     .letter{
       position:absolute;
-      left:16px; right:16px; bottom:16px;
+      left:14px; right:14px; bottom:14px;
       height:72%;
       background: rgba(229,231,235,.08);
       border:1px solid rgba(148,163,184,.20);
       border-radius:14px;
       transform: translateY(44px);
       transition: transform .75s cubic-bezier(.2,.9,.2,1);
+
       display:flex;
       align-items:center;
       justify-content:center;
-      color: rgba(229,231,235,.85);
-      font-size: 14px;
+
       text-align:center;
-      padding:18px;
-      line-height:1.35;
+      padding: 16px 14px;
+      line-height: 1.25;
+      letter-spacing: .01em;
+
+      font-size: clamp(12px, 2.8vw, 14px);
+      color: rgba(229,231,235,.92);
+
+      overflow:hidden;           /* prevent spilling */
+      word-break: break-word;    /* keep words inside */
     }
     .open .letter{ transform: translateY(-8px); }
 
@@ -203,6 +212,7 @@
       display:flex; gap:10px; align-items:center; justify-content:center;
       color: var(--muted);
       font-size: 13px;
+      text-align:center;
     }
     .pulseDot{
       width:10px; height:10px; border-radius:999px;
@@ -235,6 +245,7 @@
       overflow:hidden;
       font-size: 14px;
       letter-spacing:.01em;
+      touch-action: none;
     }
     .holdBtn:disabled{ cursor:default; opacity:.9; }
     .bar{
@@ -248,6 +259,7 @@
       width:10px; height:10px; border-radius:2px;
       border:2px solid rgba(229,231,235,.7);
       position:relative;
+      flex: 0 0 auto;
     }
     .lock::before{
       content:"";
@@ -268,14 +280,26 @@
       border-radius: 20px;
       background: rgba(2,6,23,.30);
       border: 1px solid rgba(148,163,184,.18);
+      width:min(520px, 86vw);
     }
     .finalCard.show{ display:block; }
-    .title{
-      margin:0 0 10px;
-      font-size: clamp(22px, 3.6vw, 34px);
-      letter-spacing:-0.02em;
-      line-height:1.15;
+
+    /* GIF */
+    .gifBox{
+      width:100%;
+      display:grid;
+      place-items:center;
+      margin: 2px 0 12px;
     }
+    .gif{
+      width: min(320px, 74vw);
+      max-width: 100%;
+      height: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.18);
+      box-shadow: 0 14px 38px rgba(0,0,0,.35);
+    }
+
     .msg{
       margin:0;
       color: rgba(229,231,235,.92);
@@ -315,15 +339,20 @@
     .btn:hover{ transform: translateY(-1px); border-color: rgba(96,165,250,.45); }
     .btn:active{ transform: translateY(0px); }
 
-    .shake{
-      animation: shake .35s ease;
-    }
+    .shake{ animation: shake .35s ease; }
     @keyframes shake{
       0%,100%{ transform: translateX(0); }
       20%{ transform: translateX(-6px); }
       40%{ transform: translateX(6px); }
       60%{ transform: translateX(-4px); }
       80%{ transform: translateX(4px); }
+    }
+
+    /* Extra small phones */
+    @media (max-width: 360px){
+      .panel{ padding:18px; }
+      .letter{ left:12px; right:12px; bottom:12px; padding:14px 12px; }
+      .badge{ font-size:11px; padding:7px 10px; }
     }
   </style>
 </head>
@@ -347,7 +376,9 @@
             <div class="envBase"></div>
             <div class="flap"></div>
             <div class="letter" id="letterPreview">
-              Tap to open<br/>then unlock to reveal the message
+              Tap to open.<br/>
+              Then hold to unlock<br/>
+              and reveal the message.
             </div>
           </div>
         </div>
@@ -368,7 +399,11 @@
         </div>
 
         <div class="finalCard" id="finalCard">
-          <h2 class="title">I love you.</h2>
+          <div class="gifBox">
+            <!-- Make sure you uploaded the gif as love.gif in the repo root -->
+            <img class="gif" src="love.gif" alt="I LOVE YOU GIF" />
+          </div>
+
           <p class="msg"><span class="reveal" id="typing"></span></p>
 
           <div class="from">
@@ -457,7 +492,6 @@
 
     function startHold(){
       if (!opened || unlocked) {
-        // give feedback if they try too early
         if (!opened) {
           envelopeArea.classList.remove("shake");
           void envelopeArea.offsetWidth;
@@ -475,7 +509,6 @@
       if (!holding || unlocked) return;
       holding = false;
       cancelAnimationFrame(raf);
-      // reset bar with a small snapback
       bar.style.width = "0%";
       holdBtn.classList.remove("shake");
       void holdBtn.offsetWidth;
@@ -489,7 +522,12 @@
 
     // ===== Typewriter reveal =====
     const typingEl = document.getElementById("typing");
-    const msg = "Let’s watch a movie of your choice.";
+    const msg =
+`Let’s watch a movie of your choice.
+
+---------
+Reply with the choice of your movie.`;
+
     let i = 0, timer = null;
 
     function typeIt(){
@@ -500,13 +538,12 @@
         typingEl.textContent += msg[i] || "";
         i++;
         if (i >= msg.length) clearInterval(timer);
-      }, 24);
+      }, 22);
     }
 
     function revealMessage(){
       finalCard.classList.add("show");
       typeIt();
-      // subtle scroll into view on small screens
       finalCard.scrollIntoView({behavior:"smooth", block:"nearest"});
     }
 
